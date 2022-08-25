@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package order.v1;
+option java_package = "order.v1.user";
+
+message RegisterUserRequest {
+  string login_id = 1;
+  string password = 2;
+}
+
+message RegisterUserResponse {
+  string login_id = 1;
+  bool enabled = 2;
+  repeated RegisterRoleResponse role_list = 3;
+}
+
+message RegisterRoleResponse {
+  string role = 1;
+}
