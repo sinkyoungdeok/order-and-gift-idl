@@ -1,6 +1,8 @@
 syntax = "proto3";
 package msa.order;
 
+option java_multiple_files = true;
+
 service UserService {
   rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
 }

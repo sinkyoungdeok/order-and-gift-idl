@@ -4,7 +4,7 @@ import com.google.protobuf.gradle.*
 plugins {
 	id("org.springframework.boot") version "2.7.3"
 	id("io.spring.dependency-management") version "1.0.13.RELEASE"
-	id("com.google.protobuf") version "0.8.14"
+	id("com.google.protobuf") version "0.8.15"
 	kotlin("jvm") version "1.6.21"
 	kotlin("plugin.spring") version "1.6.21"
 }
@@ -12,6 +12,15 @@ plugins {
 group = "msa"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
+
+apply(plugin = "kotlin")
+apply(plugin = "com.google.protobuf")
+
+configurations.forEach {
+	if (it.name.toLowerCase().contains("proto")) {
+		it.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "java-runtime"))
+	}
+}
 
 repositories {
 	mavenCentral()
@@ -22,18 +31,13 @@ val grpcVersion = "1.36.0"
 val grpcKotlinVersion = "1.0.0"
 
 dependencies {
-	// Armeria
-	implementation("com.linecorp.armeria:armeria-spring-boot-webflux-starter")
-	implementation("com.linecorp.armeria:armeria-grpc")
+	compileOnly("javax.annotation:javax.annotation-api:1.3.2")
 
-	// reactor
-	implementation("com.salesforce.servicelibs:reactor-grpc-stub:1.0.0")
-}
-
-dependencyManagement {
-	imports {
-		mavenBom("com.linecorp.armeria:armeria-bom:0.99.5")
-	}
+	// grpc
+	api("com.google.protobuf:protobuf-java-util:3.14.0")
+	api("io.grpc:grpc-kotlin-stub:1.0.0")
+	api("io.grpc:grpc-protobuf:1.34.0")
+	api("io.grpc:grpc-netty-shaded:1.34.0")
 }
 
 tasks.withType<KotlinCompile> {
@@ -56,24 +60,37 @@ plugins.withType<ProtobufPlugin> {
 		}
 	}
 	protobuf {
+		generatedFilesBaseDir = "$projectDir/build/generated/source"
 		protoc {
-			artifact = "com.google.protobuf:protoc:3.10.1"
+			artifact = "com.google.protobuf:protoc:3.14.0"
 		}
 		plugins {
 			id("grpc") {
-				artifact = "io.grpc:protoc-gen-grpc-java:1.25.0"
+				artifact = "io.grpc:protoc-gen-grpc-java:1.34.0"
 			}
-			id("reactorGrpc") {
-				artifact = "com.salesforce.servicelibs:reactor-grpc:1.0.0"
+			id("grpckt") {
+				artifact = "io.grpc:protoc-gen-grpc-kotlin:1.0.0:jdk7@jar"
 			}
 		}
 		generateProtoTasks {
 			ofSourceSet("main").forEach {
 				it.plugins {
 					id("grpc")
-					id("reactorGrpc")
+					id("grpckt")
 				}
+				it.generateDescriptorSet = true
+				it.descriptorSetOptions.includeSourceInfo = true
+				it.descriptorSetOptions.includeImports = true
+				it.descriptorSetOptions.path = "$buildDir/resources/META-INF/armeria/grpc/service-name.dsc"
 			}
 		}
+	}
+}
+
+sourceSets {
+	main {
+		java.srcDir("build/generated/source/main/grpckt")
+		java.srcDir("build/generated/source/main/grpc")
+		java.srcDir("build/generated/source/main/java")
 	}
 }
