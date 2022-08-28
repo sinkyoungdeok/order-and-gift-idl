@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.google.protobuf.gradle.*
 
 plugins {
@@ -13,7 +12,6 @@ group = "msa"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
-apply(plugin = "kotlin")
 apply(plugin = "com.google.protobuf")
 
 configurations.forEach {
@@ -38,13 +36,6 @@ dependencies {
 	api("io.grpc:grpc-kotlin-stub:1.0.0")
 	api("io.grpc:grpc-protobuf:1.34.0")
 	api("io.grpc:grpc-netty-shaded:1.34.0")
-}
-
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "11"
-	}
 }
 
 tasks.withType<Test> {
