@@ -1,5 +1,5 @@
 syntax = "proto3";
-package msa.order;
+package msa.order.v1.user;
 
 option java_multiple_files = true;
 
